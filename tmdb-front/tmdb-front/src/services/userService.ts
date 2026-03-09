@@ -50,6 +50,6 @@ export const userService = {
 
   
   async logout(): Promise<void> {
-    await api.post('/auth/logout');
+    await api.delete('/logout');
   },
 };
