@@ -201,15 +201,14 @@ def get_movie(movie_id):
 def delete_movie(movie_id):
     try:
         current_user_id = get_jwt_identity()
-        current_user = User.query.get(current_user_id)
-        
-        if not current_user or not current_user.admin:
-            return error_response(403, "Admin access required")
         
         movie = Movie.query.get(movie_id)
         
         if not movie:
             return error_response(404, "Movie not found")
+        
+        if movie.user_id != current_user_id:
+            return error_response(403, "You can only delete your own movies")
         
         title = movie.title
         
