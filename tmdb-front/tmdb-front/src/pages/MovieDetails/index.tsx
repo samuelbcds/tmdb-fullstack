@@ -8,11 +8,11 @@ import {
 } from '../../services/tmdbService';
 import {
   getMovieDetailsFromBackend,
+  findMovieInBackend,
   saveRatedMovie,
   deleteMovie,
   type MovieDetailsFromBackend,
 } from '../../services/movieService';
-import { getMovieRating } from '../../services/ratingService';
 import { PageHeader, StarRating } from '../../components';
 import styles from './styles.module.css';
 
@@ -29,7 +29,7 @@ export default function MovieDetails() {
   const [rating, setRating] = useState(0);
   const [savingRating, setSavingRating] = useState(false);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
-  const [existsInBackend, setExistsInBackend] = useState(false);
+  const [backendMovieId, setBackendMovieId] = useState<number | null>(null);
   const [deletingMovie, setDeletingMovie] = useState(false);
 
   const fetchMovie = async () => {
@@ -49,25 +49,31 @@ export default function MovieDetails() {
         const backendDetails: MovieDetailsFromBackend = await getMovieDetailsFromBackend(parsedMovieId);
         details = backendDetails;
         setRating(backendDetails.rating_user ?? 0);
-        setExistsInBackend(true);
+        setBackendMovieId(backendDetails.id);
       } catch (backendError: any) {
         if (backendError?.response?.status === 404) {
           details = await getMovieDetails(parsedMovieId);
-          setRating(0);
-          setExistsInBackend(false);
+
+          try {
+            const backendMovie = await findMovieInBackend(details);
+
+            if (backendMovie) {
+              setRating(backendMovie.rating_user ?? 0);
+              setBackendMovieId(backendMovie.id);
+            } else {
+              setRating(0);
+              setBackendMovieId(null);
+            }
+          } catch {
+            setRating(0);
+            setBackendMovieId(null);
+          }
         } else {
           throw backendError;
         }
       }
 
       setMovie(details);
-      
-      try {
-        const existingRating = await getMovieRating(parsedMovieId);
-        setRating(existingRating ?? 0);
-      } catch (ratingError) {
-        setRating(0);
-      }
     } catch (err: any) {
       setError(err.message || 'Erro ao carregar detalhes do filme.');
     } finally {
@@ -92,10 +98,14 @@ export default function MovieDetails() {
     setError(null);
 
     try {
-      await saveRatedMovie(movie, rating, user.id);
-      
+      const savedMovie = await saveRatedMovie(movie, rating, user.id);
       setSuccessMessage('Nota salva com sucesso!');
-      setExistsInBackend(true);
+
+      if (savedMovie?.id) {
+        setBackendMovieId(savedMovie.id);
+      } else {
+        await fetchMovie();
+      }
       
       setTimeout(() => setSuccessMessage(null), 3000);
     } catch (err: any) {
@@ -106,7 +116,10 @@ export default function MovieDetails() {
   };
 
   const handleDeleteMovie = async () => {
-    if (!movie) return;
+    if (!movie || !backendMovieId) {
+      setError('Filme não disponível para exclusão.');
+      return;
+    }
 
     const confirmDelete = window.confirm(
       `Tem certeza que deseja excluir "${movie.title}" do banco de dados?`
@@ -118,13 +131,11 @@ export default function MovieDetails() {
     setError(null);
 
     try {
-      await deleteMovie(parsedMovieId);
+      await deleteMovie(backendMovieId);
       setSuccessMessage('Filme excluído com sucesso!');
-      setExistsInBackend(false);
+      setBackendMovieId(null);
       setRating(0);
-      setTimeout(() => {
-        navigate('/');
-      }, 2000);
+      navigate('/');
     } catch (err: any) {
       setError(err.message || 'Não foi possível excluir o filme. Tente novamente.');
     } finally {
@@ -164,7 +175,7 @@ export default function MovieDetails() {
             </div>
           ) : null}
 
-          {error && !loading ? (
+          {error && !loading && !movie ? (
             <div className={styles.errorState}>
               <h3>Ops! Algo deu errado</h3>
               <p>{error}</p>
@@ -174,7 +185,7 @@ export default function MovieDetails() {
             </div>
           ) : null}
 
-          {!loading && !error && movie ? (
+          {!loading && movie ? (
             <section className={styles.movieDetailsCard}>
               <div className={styles.movieDetailsPosterWrap}>
                 <img
@@ -216,7 +227,7 @@ export default function MovieDetails() {
                       {savingRating ? 'Salvando...' : 'Salvar avaliacao'}
                     </button>
                     
-                    {existsInBackend && (
+                    {backendMovieId && (
                       <button
                         className={styles.btnDelete}
                         onClick={handleDeleteMovie}
@@ -226,6 +237,8 @@ export default function MovieDetails() {
                       </button>
                     )}
                   </div>
+
+                  {error ? <p className={styles.movieDetailsError}>{error}</p> : null}
                   
                   {successMessage ? <p className={styles.movieDetailsSuccess}>{successMessage}</p> : null}
                 </div>

@@ -246,6 +246,12 @@
   font-weight: var(--font-weight-semibold);
 }
 
+.movieDetailsError {
+  margin: 0;
+  color: var(--color-danger-700);
+  font-weight: var(--font-weight-semibold);
+}
+
 .movieDetailsActions {
   display: flex;
   gap: var(--spacing-md);
@@ -253,7 +259,7 @@
 }
 
 .btnDelete {
-  background: var(--color-error-600);
+  background: var(--color-danger-600);
   color: var(--color-neutral-000);
   border: none;
   padding: var(--spacing-sm) var(--spacing-lg);
@@ -265,7 +271,7 @@
 }
 
 .btnDelete:hover:not(:disabled) {
-  background: var(--color-error-700);
+  background: var(--color-danger-700);
 }
 
 .btnDelete:disabled {
