@@ -16,6 +16,15 @@ export interface MovieDetailsFromBackend extends MovieDetails {
   rating_user?: number | null;
 }
 
+interface GetMoviesResponse {
+  movies: BackendMovieDetails[];
+  pagination?: {
+    page: number;
+    pages: number;
+    has_next: boolean;
+  };
+}
+
 function mapBackendMovieToMovieDetails(movie: BackendMovieDetails): MovieDetailsFromBackend {
   const genreNames = (movie.genre || '')
     .split(',')
@@ -63,12 +72,61 @@ export const getMovieDetailsFromBackend = async (movieId: number): Promise<Movie
   }
 };
 
+function normalizeComparableText(value: string | null | undefined): string {
+  return (value || '').trim().toLowerCase();
+}
+
+function sameDate(left: string | null | undefined, right: string | null | undefined): boolean {
+  return (left || '') === (right || '');
+}
+
+export const findMovieInBackend = async (
+  movie: Pick<Movie | MovieDetails, 'title' | 'release_date' | 'overview'>
+): Promise<BackendMovieDetails | null> => {
+  const normalizedTitle = normalizeComparableText(movie.title);
+  const normalizedReleaseDate = movie.release_date || '';
+
+  const findMatch = (candidates: BackendMovieDetails[]) => candidates.find((candidate) => {
+    const sameTitle = normalizeComparableText(candidate.title) === normalizedTitle;
+    const candidateReleaseDate = candidate.release_date || '';
+
+    return sameTitle && sameDate(candidateReleaseDate, normalizedReleaseDate);
+  });
+
+  let page = 1;
+
+  while (page <= 20) {
+    const { data } = await api.get<GetMoviesResponse>('/movies', {
+      params: {
+        per_page: 100,
+        page,
+        search: movie.title,
+      },
+    });
+
+    const matchedMovie = findMatch(data.movies || []);
+
+    if (matchedMovie) {
+      return matchedMovie;
+    }
+
+    const totalPages = data.pagination?.pages ?? page;
+    if (page >= totalPages || data.pagination?.has_next === false) {
+      break;
+    }
+
+    page += 1;
+  }
+
+  return null;
+};
+
 
 export const saveRatedMovie = async (
   movie: Movie | MovieDetails,
   rating_user: number,
   userId: string
-): Promise<void> => {
+): Promise<BackendMovieDetails> => {
   const normalizedRating = Math.max(0, Math.min(5, Math.round(rating_user * 2) / 2));
   const formattedDate = movie.release_date || null;
   const posterUrl = movie.poster_path ? getPosterUrl(movie.poster_path, 'w500') : null;
@@ -90,7 +148,14 @@ export const saveRatedMovie = async (
     rating_user: normalizedRating, // Avaliação do usuário (0-5)
   };
   try {
-    await api.post('/movies', payload);
+    const response = await api.post('/movies', payload);
+    const createdMovie = response.data?.movie;
+
+    if (!createdMovie || typeof createdMovie !== 'object') {
+      throw new Error('Resposta invalida ao salvar filme.');
+    }
+
+    return createdMovie as BackendMovieDetails;
   } catch (error: any) {
     throw new Error(
       error.response?.data?.message ||
