@@ -1,23 +1,20 @@
-[project]
+[tool.poetry]
 name = "tmdb-app"
 version = "0.1.0"
 description = ""
-authors = [
-    {name = "=",email = "baltaz.samuel@gmail.com"}
-]
+authors = ["Samuel Baltazar <baltaz.samuel@gmail.com>"]
 readme = "README.md"
-requires-python = ">=3.14,<4"
-dependencies = [
-    "flask (>=3.1.3,<4.0.0)",
-    "flask-jwt-extended (>=4.7.1,<5.0.0)",
-    "flask-sqlalchemy (>=3.1.1,<4.0.0)",
-    "flask-cors (>=4.0.0,<5.0.0)",
-    "dotenv (>=0.9.9,<0.10.0)",
-    "psycopg2-binary (>=2.9.0,<3.0.0)"
-]
-
-[tool.poetry]
 packages = [{include = "src"}]
+package-mode = false
+
+[tool.poetry.dependencies]
+python = ">=3.12,<4.0"
+flask = ">=3.1.3,<4.0.0"
+flask-jwt-extended = ">=4.7.1,<5.0.0"
+flask-sqlalchemy = ">=3.1.1,<4.0.0"
+flask-cors = ">=4.0.0,<5.0.0"
+dotenv = ">=0.9.9,<0.10.0"
+psycopg2-binary = ">=2.9.0,<3.0.0"
 
 [build-system]
 requires = ["poetry-core>=2.0.0,<3.0.0"]

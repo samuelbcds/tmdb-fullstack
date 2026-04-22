@@ -52,7 +52,7 @@ services:
 
   frontend:
     build:
-      context: ./tmdb-front/tmdb-front
+      context: ./tmdb-front
       dockerfile: Dockerfile
       args:
         VITE_API_URL: ${VITE_API_URL:-/api}

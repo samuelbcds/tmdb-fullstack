@@ -43,7 +43,7 @@ tmdb/
 |     |- routes/routes.py
 |     |- controllers/
 |     |- models/
-|- tmdb-front/tmdb-front/    # React app
+|- tmdb-front/               # React app
    |- src/
       |- pages/
       |- services/
