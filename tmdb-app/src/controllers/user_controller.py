@@ -32,10 +32,11 @@ def create_user():
         new_user = User(
             name=name,
             email=email,
-            password=password,
+            password='',
             created_at=dt.now(),
             admin=admin
         )
+        new_user.set_password(password)
         
         db.session.add(new_user)
         db.session.commit()

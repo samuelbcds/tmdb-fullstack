@@ -5,7 +5,7 @@ from flask_jwt_extended import (
     set_access_cookies, set_refresh_cookies,
     unset_access_cookies, unset_jwt_cookies
 )
-from src import jwt, db
+from src import jwt
 from src.models.user import User
 from src.errors import error_response
 
@@ -31,7 +31,7 @@ def login():
 
     user = User.query.filter_by(email=email).first()
 
-    if not user or user.password != password:
+    if not user or not user.check_password(password):
         return error_response(401, "Email or password invalid.")
 
     access_token = create_access_token(identity=str(user.id))

@@ -1,4 +1,5 @@
 import uuid
+from werkzeug.security import generate_password_hash, check_password_hash
 from src import db
 
 
@@ -50,6 +51,12 @@ class User(db.Model):
 
     def __repr__(self):
         return '<User {}>'.format(self.name)
+
+    def set_password(self, raw_password):
+        self.password = generate_password_hash(raw_password)
+
+    def check_password(self, raw_password):
+        return check_password_hash(self.password, raw_password)
     
     def to_dict(self, include_movies=True):
         user_data = {
