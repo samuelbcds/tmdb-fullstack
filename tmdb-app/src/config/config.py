@@ -24,6 +24,12 @@ class Config:
     SQLALCHEMY_DATABASE_URI = environ.get("SQLALCHEMY_DATABASE_URI")
     SQLALCHEMY_ECHO = False
     SQLALCHEMY_TRACK_MODIFICATIONS = False
+
+    # TMDB configuration (server-side only)
+    TMDB_API_BASE_URL = environ.get('TMDB_API_BASE_URL', 'https://api.themoviedb.org/3')
+    TMDB_API_KEY = environ.get('TMDB_API_KEY')
+    TMDB_BEARER_TOKEN = environ.get('TMDB_BEARER_TOKEN')
+    TMDB_TIMEOUT_SECONDS = float(environ.get('TMDB_TIMEOUT_SECONDS', '10'))
     
     # JWT Configuration
     JWT_SECRET_KEY = environ.get('JWT_SECRET_KEY', SECRET_KEY)

@@ -61,10 +61,12 @@ tmdb/
 cp .env.example .env
 ```
 
-2. Set your TMDB key in `.env`:
+2. Set your TMDB credentials in `.env` (backend-side):
 
 ```env
-VITE_TMDB_API_KEY=your_tmdb_api_key
+TMDB_API_KEY=your_tmdb_api_key
+# optional alternative to API key:
+# TMDB_BEARER_TOKEN=your_tmdb_bearer_token
 ```
 
 3. Build and run:

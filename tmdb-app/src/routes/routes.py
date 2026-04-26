@@ -2,6 +2,7 @@ from flask import Blueprint, jsonify
 from src.controllers.auth import *
 from src.controllers.user_controller import *
 from src.controllers.movie_controller import *
+from src.controllers.tmdb_controller import *
 
 
 api = Blueprint('api', __name__)
@@ -54,6 +55,10 @@ def get_current_user_route():
 
 
 #################### Movie routes ###################
+
+@api.route('/tmdb/<path:tmdb_path>', methods=['GET'])
+def tmdb_proxy_route(tmdb_path):
+    return tmdb_proxy_get(tmdb_path)
 
 @api.route('/movies', methods=['POST'])
 def create_movie_route():

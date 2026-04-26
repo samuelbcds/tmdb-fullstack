@@ -6,15 +6,14 @@ import type { AxiosInstance, InternalAxiosRequestConfig } from 'axios';
 interface ApiConfig {
   apiBaseURL: string;
   apiTimeout: number;
-  tmdbBaseUrl: string;
-  tmdbApiKey: string;
 }
+
+const trimTrailingSlash = (value: string): string => value.replace(/\/+$/, '');
+
 const getConfig = (): ApiConfig => {
   return {
     apiBaseURL: import.meta.env.VITE_API_URL || 'http://localhost:5000/api',
     apiTimeout: import.meta.env.VITE_API_TIMEOUT ? parseInt(import.meta.env.VITE_API_TIMEOUT) : 10000,
-    tmdbBaseUrl: import.meta.env.VITE_TMDB_API_BASE_URL || 'https://api.themoviedb.org/3',
-    tmdbApiKey: import.meta.env.VITE_TMDB_API_KEY || '',
   };
 };
 
@@ -32,13 +31,10 @@ export const api: AxiosInstance = axios.create({
 
 
 export const tmdbApi: AxiosInstance = axios.create({
-  baseURL: config.tmdbBaseUrl,
+  baseURL: `${trimTrailingSlash(config.apiBaseURL)}/tmdb`,
   timeout: config.apiTimeout,
   headers: {
     'Content-Type': 'application/json',
-  },
-  params: {
-    ...(config.tmdbApiKey && { api_key: config.tmdbApiKey }),
   },
 });
 
